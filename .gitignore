@@ -1,0 +1,74 @@
+# Build artifacts
+.gradle/
+build/
+*/build/
+out/
+bin/
+
+# IDE specific (IntelliJ/Android Studio)
+.idea/
+*.iml
+*.iws
+*.ipr
+.navigation/
+captures/
+output.json
+.idea/shelf/
+.idea/dictionaries/
+
+# Local/User configuration
+local.properties
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/usage.statistics.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/deploymentTargetSelector.xml
+
+# Compiled code & binaries
+*.class
+*.apk
+*.aar
+*.ap_
+*.dex
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+*.lock
+
+# Keystores & Signing
+*.jks
+*.keystore
+*.p12
+*.properties.user
+signing/
+
+# Secrets & Service Configs
+google-services.json
+GoogleService-Info.plist
+secrets.xml
+.artifacts/
+.kotlin/
+
+# NDK/C++
+.externalNativeBuild/
+.cxx/
+obj/
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+*.swp
