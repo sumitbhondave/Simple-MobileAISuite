@@ -24,6 +24,12 @@ Ultra-low latency vision system running entirely on-device via **MediaPipe**.
 - **Hardware Acceleration**: Optimized for mobile NPU/GPU inference.
 - **CameraX Pipeline**: High-performance image analysis buffer integration with automatic rotation handling.
 
+### 📴 3. Offline AI Chat (Local LLM)
+Secure, private conversation powered by **Google Gemma 2B** running 100% on-device.
+- **On-Device LLM**: Implementation of `tasks-genai` for local inference without data leaving the device.
+- **Session-Based Inference**: Uses `LlmInferenceSession` for optimized GPU resource management and sampling control.
+- **Reactive Streaming**: Real-time token streaming using `SharedFlow` for a responsive chat experience.
+
 ---
 
 ## 🏗️ Architectural Blueprint
@@ -41,11 +47,11 @@ graph TD
 
 ### 💎 Engineering Excellence
 - **SOLID Principles**: 
-    - *Dependency Inversion*: Features interact with `GeminiRepository` and `ObjectDetectorRepository` interfaces.
-    - *Single Responsibility*: Specialized core services like `PermissionManager` handle cross-cutting concerns.
+    - *Dependency Inversion*: Features interact with `GeminiRepository`, `ObjectDetectorRepository`, and `OfflineChatRepository` interfaces.
+    - *Single Responsibility*: Specialized core services like `PermissionManager` and data helpers like `LLMInferenceHelper` handle specific cross-cutting concerns.
 - **State Management**: Reactive UI powered by `StateFlow` and `collectAsStateWithLifecycle`.
-- **Decoupled Logic**: Permission handling is extracted into a dedicated `core.permission` service layer, decoupled from UI lifecycles.
-- **Modular UI**: Large composables are decomposed into granular, reusable units to optimize recomposition and improve maintainability.
+- **Decoupled Logic**: Permission handling is extracted into a dedicated `core.permission` service layer.
+- **Modular UI**: Large composables are decomposed into granular, reusable units (e.g., `OfflineChatScreen`, `GeminiResponseArea`).
 
 ---
 
@@ -54,7 +60,8 @@ graph TD
 | Category | Technology |
 | :--- | :--- |
 | **UI Framework** | Jetpack Compose (Material 3) |
-| **AI Processing** | MediaPipe Tasks Vision, Google AI SDK |
+| **AI Processing** | MediaPipe (Vision & GenAI), Google AI SDK |
+| **Local LLM** | Gemma 2B (INT4 Quantized) |
 | **Concurrency** | Kotlin Coroutines & Flow |
 | **Dependency Injection** | Hilt |
 | **Navigation** | Navigation Compose (Type-safe) |
@@ -74,8 +81,8 @@ graph TD
    *The project uses the `Secrets Gradle Plugin` to prevent key exposure.*
 
 ### 2. Edge Model Configuration
-The object detection model is located at:
-`app/src/main/assets/models/efficientdet_lite0.tflite`
+- **Vision**: Place `efficientdet_lite0.tflite` in `app/src/main/assets/models/`.
+- **LLM**: The project expects `gemma-2b-it-gpu-int4.bin` in the app's internal files directory (`context.filesDir`). This can be pushed via Android Studio's **Device File Explorer**.
 
 ### 3. Permission Strategy
 The app utilizes a centralized `PermissionManager` injected via Hilt. To request permissions in a new screen:
@@ -90,4 +97,5 @@ PermissionHandler(
 
 ## 📚 Technical Insights
 - **Image Analysis**: We use `ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST` to ensure the on-device model never falls behind the live camera feed.
-- **Memory Management**: Automatic closing of `ImageProxy` and MediaPipe `ObjectDetector` instances to prevent memory leaks during lifecycle changes.
+- **Session-Based Inference**: The offline chat uses `LlmInferenceSession` to maintain context and sampling settings (like temperature) independently of the main inference engine.
+- **Memory Management**: Automatic closing of `ImageProxy`, `ObjectDetector`, and `LlmInferenceSession` instances to prevent memory leaks and free up GPU resources.
