@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.sp
 fun HomeScreen(
     onNavigateToGemini: () -> Unit,
     onNavigateToDetector: () -> Unit,
+    onNavigateToOfflineChat: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -70,6 +72,15 @@ fun HomeScreen(
                 description = "Real-time on-device vision powered by MediaPipe.",
                 icon = Icons.Default.CameraAlt,
                 onClick = onNavigateToDetector
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            FeatureCard(
+                title = "Offline AI Chat (Gemma)",
+                description = "Secure on-device LLM chat without internet.",
+                icon = Icons.Default.ChatBubble,
+                onClick = onNavigateToOfflineChat
             )
         }
     }

@@ -62,6 +62,7 @@ dependencies {
     // AI & MediaPipe
     implementation(libs.generativeai)
     implementation(libs.mediapipe.tasks.vision)
+    implementation(libs.mediapipe.tasks.genai)
 
     // CameraX
     implementation(libs.androidx.camera.core)

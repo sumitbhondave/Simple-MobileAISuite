@@ -7,4 +7,5 @@ sealed class Screen(val route: String) {
     object Home : Screen("home")
     object Gemini : Screen("gemini")
     object Detector : Screen("detector")
+    object OfflineChat : Screen("offline_chat")
 }

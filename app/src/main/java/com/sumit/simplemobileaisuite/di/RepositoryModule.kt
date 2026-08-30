@@ -2,8 +2,10 @@ package com.sumit.simplemobileaisuite.di
 
 import com.sumit.simplemobileaisuite.data.repository.GeminiRepositoryImpl
 import com.sumit.simplemobileaisuite.data.repository.ObjectDetectorRepositoryImpl
+import com.sumit.simplemobileaisuite.data.repository.OfflineChatRepositoryImpl
 import com.sumit.simplemobileaisuite.domain.repository.GeminiRepository
 import com.sumit.simplemobileaisuite.domain.repository.ObjectDetectorRepository
+import com.sumit.simplemobileaisuite.domain.repository.OfflineChatRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -29,4 +31,10 @@ abstract class RepositoryModule {
     abstract fun bindObjectDetectorRepository(
         objectDetectorRepositoryImpl: ObjectDetectorRepositoryImpl
     ): ObjectDetectorRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindOfflineChatRepository(
+        offlineChatRepositoryImpl: OfflineChatRepositoryImpl
+    ): OfflineChatRepository
 }
