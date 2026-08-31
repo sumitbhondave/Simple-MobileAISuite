@@ -2,12 +2,15 @@ package com.sumit.simplemobileaisuite.ui.screens.offline_chat
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sumit.simplemobileaisuite.domain.model.OfflineLLMStatus
 import com.sumit.simplemobileaisuite.domain.repository.OfflineChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,7 +34,17 @@ class OfflineChatViewModel @Inject constructor(
     private val _isGenerating = MutableStateFlow(false)
     val isGenerating: StateFlow<Boolean> = _isGenerating.asStateFlow()
 
+    val offlineLLMStatus: StateFlow<OfflineLLMStatus> = repository.offlineLLMStatus
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = OfflineLLMStatus.Idle
+        )
+
     init {
+        // Trigger initialization
+        repository.initialize()
+
         // Listen to the AI streaming its response
         viewModelScope.launch(Dispatchers.Main) {
             repository.partialResults.collect { (chunk, isDone) ->
