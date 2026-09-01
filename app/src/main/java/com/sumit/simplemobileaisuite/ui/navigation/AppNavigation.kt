@@ -12,6 +12,8 @@ import com.sumit.simplemobileaisuite.ui.screens.gemini.GeminiViewModel
 import com.sumit.simplemobileaisuite.ui.screens.home.HomeScreen
 import com.sumit.simplemobileaisuite.ui.screens.offline_chat.OfflineChatScreen
 import com.sumit.simplemobileaisuite.ui.screens.offline_chat.OfflineChatViewModel
+import com.sumit.simplemobileaisuite.ui.screens.smart_chat.SmartChatScreen
+import com.sumit.simplemobileaisuite.ui.screens.smart_chat.SmartChatViewModel
 
 /**
  * Main navigation graph for the application.
@@ -28,7 +30,8 @@ fun AppNavigation() {
             HomeScreen(
                 onNavigateToGemini = { navController.navigate(Screen.Gemini.route) },
                 onNavigateToDetector = { navController.navigate(Screen.Detector.route) },
-                onNavigateToOfflineChat = { navController.navigate(Screen.OfflineChat.route) }
+                onNavigateToOfflineChat = { navController.navigate(Screen.OfflineChat.route) },
+                onNavigateToSmartChat = { navController.navigate(Screen.SmartChat.route) }
             )
         }
 
@@ -51,6 +54,14 @@ fun AppNavigation() {
         composable(Screen.OfflineChat.route) {
             val viewModel: OfflineChatViewModel = hiltViewModel()
             OfflineChatScreen(
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.SmartChat.route) {
+            val viewModel: SmartChatViewModel = hiltViewModel()
+            SmartChatScreen(
                 viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() }
             )

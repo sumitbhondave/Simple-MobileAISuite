@@ -1,3 +1,66 @@
 <resources>
     <string name="app_name">Simple-MobileAISuite</string>
+
+    <!-- General -->
+    <string name="back">Back</string>
+    <string name="send">Send</string>
+    <string name="error_prefix">Error: %1$s</string>
+    <string name="system_error_prefix">[System Error: %1$s]</string>
+    <string name="unknown_error">An unknown error occurred</string>
+
+    <!-- Home Screen -->
+    <string name="home_title">Mobile AI Suite</string>
+    <string name="home_header">Explore On-Device &amp; Generative AI</string>
+    <string name="feature_gemini_title">Gemini AI Chat</string>
+    <string name="feature_gemini_desc">Multimodal Generative AI for text and image analysis.</string>
+    <string name="feature_detector_title">Local Object Detection</string>
+    <string name="feature_detector_desc">Real-time on-device vision powered by MediaPipe.</string>
+    <string name="feature_offline_chat_title">Offline AI Chat (Gemma)</string>
+    <string name="feature_offline_chat_desc">Secure on-device LLM chat without internet.</string>
+    <string name="feature_smart_chat_title">Smart AI Chat</string>
+    <string name="feature_smart_chat_desc">Hybrid Edge-first orchestrator with Cloud fallback.</string>
+
+    <!-- Gemini Screen -->
+    <string name="gemini_title">Gemini AI Chat</string>
+    <string name="gemini_default_response">Ask Gemini something...</string>
+    <string name="gemini_placeholder">Ask about an image or text...</string>
+
+    <!-- Object Detection -->
+    <string name="detector_title">Local Object Detection</string>
+    <string name="camera_permission_required">Camera permission is required for object detection</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="detection_status">Speed: %1$dms | Objects: %2$d</string>
+    <string name="object_label_format">%1$s %2$d%%</string>
+    <string name="object_fallback">Object</string>
+
+    <!-- Offline Chat -->
+    <string name="offline_chat_title">Offline AI Chat (Gemma)</string>
+    <string name="loading_gemma">Loading Gemma Model (INT4)...</string>
+    <string name="offline_chat_placeholder">Ask Gemma anything...</string>
+    <string name="hardware_error_gpu">Hardware Error: Your device\'s GPU does not support the required compute shaders.</string>
+
+    <!-- Smart Chat -->
+    <string name="smart_chat_title">Smart AI Chat (Hybrid)</string>
+    <string name="edge_ai_ready">Edge AI Ready (Offline Mode Available)</string>
+    <string name="warming_up_edge_ai">Warming up Edge AI (Gemma)...</string>
+    <string name="edge_ai_unavailable">Edge AI Unavailable: Fallback to Cloud only.</string>
+    <string name="initializing_edge_ai">Initializing Edge AI...</string>
+    <string name="smart_chat_placeholder">Ask something smart...</string>
+
+    <!-- Image Picker Component -->
+    <string name="content_desc_selected_image">Selected Image Preview</string>
+    <string name="content_desc_remove_image">Remove Image</string>
+    <string name="content_desc_attach_image">Attach Image from Downloads/Gallery</string>
+
+    <!-- System Messages / Errors -->
+    <string name="model_not_found">Model file not found! Push it via Device File Explorer.</string>
+    <string name="native_engine_error">Native Engine Error: %1$s</string>
+    <string name="failed_init_llm">Failed to initialize LLM: %1$s</string>
+    <string name="failed_init_detector">Object detector failed to initialize: %1$s</string>
+    <string name="failed_generate_content">Failed to generate content: %1$s</string>
+    <string name="hardware_rejected_opencl">Hardware rejected OpenCL shader.</string>
+    <string name="local_ai_error_fallback">\n\n[System: Local AI error (%1$s). Attempting Cloud Fallback...]\n\n</string>
+    <string name="local_ai_not_init_fallback">\n\n[System: Local AI not initialized. Attempting Cloud Fallback...]\n\n</string>
+    <string name="offline_no_local_fallback">[System Error: Device is offline and local AI is unavailable. Please connect to internet.]</string>
+    <string name="system_critical_error">\n\n[System Critical Error: %1$s]</string>
 </resources>

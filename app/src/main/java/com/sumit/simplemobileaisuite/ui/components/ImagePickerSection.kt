@@ -12,23 +12,24 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,25 +40,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.sumit.simplemobileaisuite.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * A reusable UI component for selecting an image and entering a text prompt.
- * Supports selecting images from the system file picker.
+ * A modern, eye-catchy UI component for selecting an image and entering a text prompt.
  *
- * @param onSendPrompt Callback triggered when the user clicks the send button.
  * @param modifier Modifier to be applied to the layout.
+ * @param onSendPrompt Callback triggered when the user clicks the send button.
  */
 @Composable
 fun ImagePickerSection(
-    onSendPrompt: (prompt: String, selectedBitmap: Bitmap?) -> Unit,
     modifier: Modifier = Modifier,
+    onSendPrompt: (prompt: String, selectedBitmap: Bitmap?) -> Unit
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -65,7 +68,6 @@ fun ImagePickerSection(
     var selectedBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var isProcessingImage by remember { mutableStateOf(false) }
 
-    // Opens Android System Document Picker (Access to Downloads, Drive, Gallery, File Manager)
     val storagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -82,7 +84,6 @@ fun ImagePickerSection(
                             MediaStore.Images.Media.getBitmap(context.contentResolver, it)
                         }
                     } catch (e: Exception) {
-                        e.printStackTrace()
                         null
                     }
                 }
@@ -91,84 +92,87 @@ fun ImagePickerSection(
         }
     }
 
-    Card(
+    Surface(
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        tonalElevation = 8.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(8.dp)
         ) {
-            // 1. IMAGE PREVIEW (Shows selected photo from Downloads or Gallery)
+            // 1. IMAGE PREVIEW
             selectedBitmap?.let { bitmap ->
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(180.dp)
-                        .padding(bottom = 8.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.TopEnd
+                        .height(160.dp)
+                        .padding(8.dp)
+                        .clip(RoundedCornerShape(20.dp))
                 ) {
                     Image(
                         bitmap = bitmap.asImageBitmap(),
-                        contentDescription = "Selected Image Preview",
+                        contentDescription = stringResource(R.string.content_desc_selected_image),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
 
-                    // Remove selected image button
                     IconButton(
                         onClick = { selectedBitmap = null },
                         modifier = Modifier
+                            .align(Alignment.TopEnd)
                             .padding(8.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-                                shape = RoundedCornerShape(50)
-                            )
+                            .size(32.dp)
+                            .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Remove Image",
-                            tint = MaterialTheme.colorScheme.error
+                            contentDescription = stringResource(R.string.content_desc_remove_image),
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
             }
 
-            // 2. INPUT ROW (Text Field + Attachment Icon + Send)
+            // 2. INPUT ROW
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
                     value = textPrompt,
                     onValueChange = { textPrompt = it },
-                    placeholder = { Text("Ask about an image or text...") },
-                    modifier = Modifier.weight(1f),
-                    maxLines = 4,
-                    shape = RoundedCornerShape(24.dp)
+                    placeholder = { Text(stringResource(R.string.gemini_placeholder)) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 4.dp),
+                    maxLines = 5,
+                    shape = RoundedCornerShape(24.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    )
                 )
 
-                Spacer(modifier = Modifier.width(4.dp))
-
-                // Clicking this opens the full file manager / Downloads drawer
+                // Camera Icon - Now on the right before Send button
                 IconButton(
-                    onClick = {
-                        // Filters system browser to show images across ALL storage locations
-                        storagePickerLauncher.launch("image/*")
-                    }
+                    onClick = { storagePickerLauncher.launch("image/*") },
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
                 ) {
                     Icon(
                         imageVector = Icons.Default.AddAPhoto,
-                        contentDescription = "Attach Image from Downloads/Gallery",
-                        tint = MaterialTheme.colorScheme.primary
+                        contentDescription = stringResource(R.string.content_desc_attach_image)
                     )
                 }
-
-                Spacer(modifier = Modifier.width(4.dp))
 
                 IconButton(
                     onClick = {
@@ -179,15 +183,17 @@ fun ImagePickerSection(
                         }
                     },
                     enabled = (textPrompt.isNotBlank() || selectedBitmap != null) && !isProcessingImage,
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                    ),
+                    modifier = Modifier.size(48.dp)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Send,
-                        contentDescription = "Send",
-                        tint = if (textPrompt.isNotBlank() || selectedBitmap != null) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                        }
+                        contentDescription = stringResource(R.string.send)
                     )
                 }
             }

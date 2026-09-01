@@ -44,6 +44,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -51,6 +52,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.vision.objectdetector.ObjectDetectorResult
+import com.sumit.simplemobileaisuite.R
 import com.sumit.simplemobileaisuite.ui.components.PermissionHandler
 import java.util.concurrent.Executors
 
@@ -60,13 +62,11 @@ import java.util.concurrent.Executors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ObjectDetectionScreen(
-    viewModel: ObjectDetectionViewModel,
+    modifier: Modifier = Modifier,
     onNavigateBack: () -> Unit,
+    viewModel: ObjectDetectionViewModel
 ) {
-    val results = viewModel.detections.collectAsState().value
-    val inferenceTime by viewModel.inferenceTime.collectAsState()
-    val error by viewModel.error.collectAsState()
-    val hasCameraPermission by viewModel.hasCameraPermission.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     var frameWidth by remember { mutableIntStateOf(0) }
     var frameHeight by remember { mutableIntStateOf(0) }
@@ -80,14 +80,20 @@ fun ObjectDetectionScreen(
     )
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("Local Object Detection", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        stringResource(R.string.detector_title),
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 },
@@ -102,12 +108,12 @@ fun ObjectDetectionScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            if (hasCameraPermission) {
+            if (uiState.hasCameraPermission) {
                 CameraPreviewContent(
                     viewModel = viewModel,
-                    results = results,
-                    inferenceTime = inferenceTime,
-                    error = error,
+                    results = uiState.detections,
+                    inferenceTime = uiState.inferenceTime,
+                    error = uiState.error,
                     onFrameSizeChanged = { width, height ->
                         frameWidth = width
                         frameHeight = height
@@ -115,7 +121,7 @@ fun ObjectDetectionScreen(
                 )
 
                 // Overlay for Bounding Boxes
-                results?.let {
+                uiState.detections?.let {
                     DetectionOverlay(
                         results = it,
                         frameWidth = frameWidth,
@@ -135,6 +141,7 @@ fun ObjectDetectionScreen(
 
 @Composable
 fun CameraPreviewContent(
+    modifier: Modifier = Modifier,
     viewModel: ObjectDetectionViewModel,
     results: ObjectDetectorResult?,
     inferenceTime: Long,
@@ -144,7 +151,7 @@ fun CameraPreviewContent(
     val lifecycleOwner = LocalLifecycleOwner.current
     val backgroundExecutor = remember { Executors.newSingleThreadExecutor() }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
@@ -211,7 +218,7 @@ fun CameraPreviewContent(
 
         // Status Card
         error?.let {
-            ErrorMessage(it)
+            ErrorMessage(error = it)
         } ?: run {
             StatusCard(
                 modifier = Modifier.align(Alignment.BottomCenter),
@@ -224,31 +231,36 @@ fun CameraPreviewContent(
 
 @Composable
 fun CameraPermissionDeniedContent(
+    modifier: Modifier = Modifier,
     onGrantPermission: () -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Camera permission is required for object detection",
+            text = stringResource(R.string.camera_permission_required),
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(16.dp)
         )
         Button(onClick = onGrantPermission) {
-            Text("Grant Permission")
+            Text(stringResource(R.string.grant_permission))
         }
     }
 }
 
 @Composable
 fun DetectionOverlay(
+    modifier: Modifier = Modifier,
     results: ObjectDetectorResult,
     frameWidth: Int,
     frameHeight: Int
 ) {
-    Canvas(modifier = Modifier.fillMaxSize()) {
+    val fallbackLabel = stringResource(R.string.object_fallback)
+    val labelFormat = stringResource(R.string.object_label_format)
+
+    Canvas(modifier = modifier.fillMaxSize()) {
         if (frameWidth <= 0 || frameHeight <= 0) return@Canvas
 
         val scaleFactor = maxOf(size.width / frameWidth, size.height / frameHeight)
@@ -258,8 +270,10 @@ fun DetectionOverlay(
         for (detection in results.detections()) {
             val boundingBox = detection.boundingBox()
             val category = detection.categories().firstOrNull()
-            val labelText =
-                "${category?.categoryName() ?: "Object"} ${((category?.score() ?: 0f) * 100).toInt()}%"
+
+            val categoryName = category?.categoryName() ?: fallbackLabel
+            val score = ((category?.score() ?: 0f) * 100).toInt()
+            val labelText = String.format(labelFormat, categoryName, score)
 
             val left = (boundingBox.left * scaleFactor) - offsetX
             val top = (boundingBox.top * scaleFactor) - offsetY
@@ -287,9 +301,9 @@ fun DetectionOverlay(
 
 @Composable
 fun StatusCard(
-    modifier: Modifier,
     inferenceTime: Long,
-    objectCount: Int
+    objectCount: Int,
+    modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
@@ -302,7 +316,7 @@ fun StatusCard(
         )
     ) {
         Text(
-            text = "Speed: ${inferenceTime}ms | Objects: $objectCount",
+            text = stringResource(R.string.detection_status, inferenceTime, objectCount),
             modifier = Modifier.padding(16.dp),
             style = MaterialTheme.typography.bodyMedium
         )
@@ -310,8 +324,11 @@ fun StatusCard(
 }
 
 @Composable
-fun ErrorMessage(error: String) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+fun ErrorMessage(
+    error: String,
+    modifier: Modifier = Modifier
+) {
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
             Text(
                 text = error,

@@ -6,65 +6,70 @@ import com.google.mediapipe.framework.image.MPImage
 import com.google.mediapipe.tasks.vision.objectdetector.ObjectDetectorResult
 import com.sumit.simplemobileaisuite.core.permission.PermissionManager
 import com.sumit.simplemobileaisuite.domain.repository.ObjectDetectorRepository
+import com.sumit.simplemobileaisuite.domain.usecase.DetectObjectsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 /**
+ * Unified State for the Object Detection screen.
+ */
+data class ObjectDetectionState(
+    val detections: ObjectDetectorResult? = null,
+    val inferenceTime: Long = 0L,
+    val error: String? = null,
+    val hasCameraPermission: Boolean = false
+)
+
+/**
  * ViewModel for the Object Detection feature.
- * Coordinates between the UI and the [ObjectDetectorRepository].
+ * Coordinates between the UI and the [DetectObjectsUseCase].
  */
 @HiltViewModel
 class ObjectDetectionViewModel @Inject constructor(
-    private val repository: ObjectDetectorRepository,
+    private val detectObjectsUseCase: DetectObjectsUseCase,
     private val permissionManager: PermissionManager
 ) : ViewModel(), ObjectDetectorRepository.DetectorListener {
 
-    private val _detections = MutableStateFlow<ObjectDetectorResult?>(null)
-    val detections: StateFlow<ObjectDetectorResult?> = _detections.asStateFlow()
-
-    private val _inferenceTime = MutableStateFlow(0L)
-    val inferenceTime: StateFlow<Long> = _inferenceTime.asStateFlow()
-
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error.asStateFlow()
-
-    private val _hasCameraPermission = MutableStateFlow(
-        permissionManager.hasPermission(Manifest.permission.CAMERA)
-    )
-    val hasCameraPermission: StateFlow<Boolean> = _hasCameraPermission.asStateFlow()
+    private val _uiState = MutableStateFlow(ObjectDetectionState())
+    val uiState: StateFlow<ObjectDetectionState> = _uiState.asStateFlow()
 
     init {
-        repository.setupDetector(this)
+        _uiState.update {
+            it.copy(hasCameraPermission = permissionManager.hasPermission(Manifest.permission.CAMERA))
+        }
+        detectObjectsUseCase.setup(this)
     }
 
     /**
      * Updates the camera permission state.
      */
     fun onCameraPermissionResult(isGranted: Boolean) {
-        _hasCameraPermission.value = isGranted
+        _uiState.update { it.copy(hasCameraPermission = isGranted) }
     }
 
     /**
      * Feeds an image frame to the detector.
      */
     fun detect(image: MPImage) {
-        repository.detectAsync(image)
+        detectObjectsUseCase(image)
     }
 
     override fun onResults(results: ObjectDetectorResult, inferenceTime: Long) {
-        _detections.value = results
-        _inferenceTime.value = inferenceTime
+        _uiState.update {
+            it.copy(detections = results, inferenceTime = inferenceTime)
+        }
     }
 
     override fun onError(error: String) {
-        _error.value = error
+        _uiState.update { it.copy(error = error) }
     }
 
     override fun onCleared() {
         super.onCleared()
-        repository.close()
+        detectObjectsUseCase.cleanup()
     }
 }

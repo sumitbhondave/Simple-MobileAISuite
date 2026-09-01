@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ChatBubble
+import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -26,10 +27,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sumit.simplemobileaisuite.R
 
 /**
  * Dashboard screen providing entry points to all AI features.
@@ -37,14 +40,17 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    modifier: Modifier = Modifier,
     onNavigateToGemini: () -> Unit,
     onNavigateToDetector: () -> Unit,
     onNavigateToOfflineChat: () -> Unit,
+    onNavigateToSmartChat: () -> Unit
 ) {
     Scaffold(
+        modifier = modifier,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Mobile AI Suite", fontWeight = FontWeight.Bold) }
+                title = { Text(stringResource(R.string.home_title), fontWeight = FontWeight.Bold) }
             )
         }
     ) { padding ->
@@ -59,8 +65,8 @@ fun HomeScreen(
             HomeHeaderContent()
 
             FeatureCard(
-                title = "Gemini AI Chat",
-                description = "Multimodal Generative AI for text and image analysis.",
+                title = stringResource(R.string.feature_gemini_title),
+                description = stringResource(R.string.feature_gemini_desc),
                 icon = Icons.Default.AutoAwesome,
                 onClick = onNavigateToGemini
             )
@@ -68,8 +74,8 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             FeatureCard(
-                title = "Local Object Detection",
-                description = "Real-time on-device vision powered by MediaPipe.",
+                title = stringResource(R.string.feature_detector_title),
+                description = stringResource(R.string.feature_detector_desc),
                 icon = Icons.Default.CameraAlt,
                 onClick = onNavigateToDetector
             )
@@ -77,28 +83,40 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             FeatureCard(
-                title = "Offline AI Chat (Gemma)",
-                description = "Secure on-device LLM chat without internet.",
+                title = stringResource(R.string.feature_offline_chat_title),
+                description = stringResource(R.string.feature_offline_chat_desc),
                 icon = Icons.Default.ChatBubble,
                 onClick = onNavigateToOfflineChat
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            FeatureCard(
+                title = stringResource(R.string.feature_smart_chat_title),
+                description = stringResource(R.string.feature_smart_chat_desc),
+                icon = Icons.Default.Psychology,
+                onClick = onNavigateToSmartChat
             )
         }
     }
 }
 
 @Composable
-fun HomeHeaderContent() {
+fun HomeHeaderContent(
+    modifier: Modifier = Modifier
+) {
     Text(
-        text = "Explore On-Device & Generative AI",
+        text = stringResource(R.string.home_header),
         fontSize = 20.sp,
         fontWeight = FontWeight.Medium,
         textAlign = TextAlign.Center,
-        modifier = Modifier.padding(bottom = 32.dp)
+        modifier = modifier.padding(bottom = 32.dp)
     )
 }
 
 @Composable
 fun FeatureCard(
+    modifier: Modifier = Modifier,
     title: String,
     description: String,
     icon: ImageVector,
@@ -106,7 +124,7 @@ fun FeatureCard(
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(

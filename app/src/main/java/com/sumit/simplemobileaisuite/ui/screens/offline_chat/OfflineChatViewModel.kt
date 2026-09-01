@@ -1,23 +1,31 @@
 package com.sumit.simplemobileaisuite.ui.screens.offline_chat
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sumit.simplemobileaisuite.R
+import com.sumit.simplemobileaisuite.core.util.chunkedByTime
+import com.sumit.simplemobileaisuite.domain.model.ChatMessage
 import com.sumit.simplemobileaisuite.domain.model.OfflineLLMStatus
 import com.sumit.simplemobileaisuite.domain.repository.OfflineChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// Data class to hold chat messages
-data class ChatMessage(
-    val text: String,
-    val isFromUser: Boolean
+/**
+ * Unified State for the Offline Chat screen.
+ */
+data class OfflineChatState(
+    val messages: List<ChatMessage> = emptyList(),
+    val isGenerating: Boolean = false,
+    val offlineLLMStatus: OfflineLLMStatus = OfflineLLMStatus.Idle
 )
 
 /**
@@ -25,72 +33,83 @@ data class ChatMessage(
  */
 @HiltViewModel
 class OfflineChatViewModel @Inject constructor(
-    private val repository: OfflineChatRepository
+    private val repository: OfflineChatRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
-    private val _chatMessages = MutableStateFlow<List<ChatMessage>>(emptyList())
-    val chatMessages: StateFlow<List<ChatMessage>> = _chatMessages.asStateFlow()
-
-    private val _isGenerating = MutableStateFlow(false)
-    val isGenerating: StateFlow<Boolean> = _isGenerating.asStateFlow()
-
-    val offlineLLMStatus: StateFlow<OfflineLLMStatus> = repository.offlineLLMStatus
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = OfflineLLMStatus.Idle
-        )
+    private val _uiState = MutableStateFlow(OfflineChatState())
+    val uiState: StateFlow<OfflineChatState> = _uiState.asStateFlow()
 
     init {
         // Trigger initialization
         repository.initialize()
 
-        // Listen to the AI streaming its response
+        // Sync hardware status
+        viewModelScope.launch {
+            repository.offlineLLMStatus.collect { status ->
+                _uiState.update { it.copy(offlineLLMStatus = status) }
+            }
+        }
+
+        // Listen to the AI streaming its response with batching
         viewModelScope.launch(Dispatchers.Main) {
-            repository.partialResults.collect { (chunk, isDone) ->
-                appendChunkToLastMessage(chunk)
+            repository.partialResults
+                .map { it.first } // Extract just the text chunk for batching
+                .chunkedByTime(100)
+                .collect { batchedChunk ->
+                    appendChunkToLastMessage(batchedChunk)
+                }
+        }
+
+        // Separately monitor the completion flag
+        viewModelScope.launch {
+            repository.partialResults.collect { (_, isDone) ->
                 if (isDone) {
-                    _isGenerating.value = false
+                    _uiState.update { it.copy(isGenerating = false) }
                 }
             }
         }
     }
 
     fun sendMessage(prompt: String) {
-        if (prompt.isBlank() || _isGenerating.value) return
+        if (prompt.isBlank() || _uiState.value.isGenerating) return
 
-        val currentList = _chatMessages.value.toMutableList()
-        currentList.add(ChatMessage(text = prompt, isFromUser = true))
-        currentList.add(ChatMessage(text = "", isFromUser = false))
-        _chatMessages.value = currentList
-
-        _isGenerating.value = true
+        _uiState.update { currentState ->
+            val updatedMessages = currentState.messages.toMutableList().apply {
+                add(ChatMessage(text = prompt, isFromUser = true))
+                add(ChatMessage(text = "", isFromUser = false))
+            }
+            currentState.copy(
+                messages = updatedMessages,
+                isGenerating = true
+            )
+        }
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 repository.generateResponse(prompt)
             } catch (e: Exception) {
-                // If the GPU rejects the model, print the error in the chat bubble!
-                appendChunkToLastMessage("Hardware Error: Your device's GPU does not support the required compute shaders (Work group size 512).")
-                _isGenerating.value = false
+                appendChunkToLastMessage(context.getString(R.string.hardware_error_gpu))
+                _uiState.update { it.copy(isGenerating = false) }
             }
         }
     }
 
     private fun appendChunkToLastMessage(chunk: String) {
-        val currentList = _chatMessages.value.toMutableList()
-        if (currentList.isNotEmpty()) {
-            val lastMessage = currentList.last()
-            // Append the new text chunk from the GPU to the AI's message
-            val updatedMessage = lastMessage.copy(text = lastMessage.text + chunk)
-            currentList[currentList.lastIndex] = updatedMessage
-            _chatMessages.value = currentList
+        _uiState.update { currentState ->
+            if (currentState.messages.isEmpty()) return@update currentState
+
+            val updatedMessages = currentState.messages.toMutableList()
+            val lastIndex = updatedMessages.lastIndex
+            val lastMessage = updatedMessages[lastIndex]
+
+            updatedMessages[lastIndex] = lastMessage.copy(text = lastMessage.text + chunk)
+            currentState.copy(messages = updatedMessages)
         }
     }
 
     override fun onCleared() {
         super.onCleared()
-        // Extremely important to free up the GPU RAM when the screen dies
         repository.close()
     }
 }
