@@ -23,100 +23,79 @@ Leveraging the power of **Google Gemini 3.6 Flash** to provide sophisticated mul
   perceived latency.
 - **Async Processing**: Powered by Kotlin Coroutines for non-blocking UI interactions.
 
-### 2. 👁️ Local Object Detection (Edge AI)
-
-Ultra-low latency vision system running entirely on-device via **MediaPipe**.
-
+### 2. 👁️ Local Object Detection (Edge Vision)
+Ultra-low latency vision system running 100% on-device via **MediaPipe**.
 - **Edge Inference**: Utilizes `efficientdet_lite0.tflite` for real-time bounding box prediction.
-- **Hardware Acceleration**: Optimized for mobile NPU/GPU inference.
-- **CameraX Pipeline**: High-performance image analysis buffer integration with automatic rotation
-  handling.
+- **CameraX Integration**: High-performance image analysis with automatic rotation handling.
 
 ### 📴 3. Offline AI Chat (Local LLM)
+Secure, private conversation powered by **Google Gemma 2B** (INT4 Quantized).
+- **On-Device LLM**: Runs locally via `tasks-genai`, ensuring data never leaves the device.
+- **Hardware Optimized**: Leverages GPU compute shaders for accelerated inference.
 
-Secure, private conversation powered by **Google Gemma 2B** running 100% on-device.
-
-- **On-Device LLM**: Implementation of `tasks-genai` for local inference without data leaving the
-  device.
-- **Session-Based Inference**: Uses `LlmInferenceSession` for optimized GPU resource management and
-  sampling control.
-- **Reactive Streaming**: Real-time token streaming using `SharedFlow` for a responsive chat
-  experience.
+### 4. 🤖 Smart AI Chat (Hybrid Orchestrator)
+A sophisticated hybrid engine that orchestrates between on-device and cloud models.
+- **Edge-First Logic**: Attempts to process requests locally via Gemma for zero-latency and offline availability.
+- **Cloud Fallback**: Automatically switches to Gemini 3.6 Flash if local hardware is insufficient or the model is not ready.
+- **Connectivity Aware**: Real-time network monitoring to determine optimal routing.
 
 ---
 
 ## 🏗️ Architectural Blueprint
 
-This project serves as a reference for **Clean Architecture** and **SOLID Principles** in a modern
-Android ecosystem.
+This project follows an advanced **Clean Architecture** implementation with strict separation of concerns.
 
 ```mermaid
 graph TD
-    UI[UI Layer: Compose Screens & Components] --> VM[ViewModel: State Management]
-    VM --> Domain[Domain Layer: Repository Interfaces]
-    Domain --> Data[Data Layer: MediaPipe & Gemini Implementations]
-    DI[DI Layer: Hilt Modules] -.-> VM
-    DI -.-> Data
+    UI[UI Layer: Compose & ViewModels] --> UseCase[Domain Layer: Pure Use Cases]
+    UseCase --> DomainRepo[Domain Layer: Repository Interfaces]
+    DomainRepo --> DataRepo[Data Layer: Repository Implementations]
+    DataRepo --> DataSource[Data Layer: Local & Remote Data Sources]
+    DI[Hilt] -.-> UI
+    DI -.-> DataRepo
 ```
 
 ### 💎 Engineering Excellence
+- **Domain Purity**: Use Cases are written in pure Kotlin, remaining agnostic of the Android Framework or UI strings.
+- **Unified State Pattern**: Each screen is backed by a single, immutable `State` data class (e.g., `GeminiState`), ensuring atomic UI updates.
+- **Flow Throttling**: Custom `chunkedByTime` operator prevents UI flickering during high-frequency AI streaming.
+- **Modern Navigation**: Type-safe navigation with centralized `Screen` definitions.
 
-- **SOLID Principles**:
-    - *Dependency Inversion*: Features interact with `GeminiRepository`, `ObjectDetectorRepository`,
-      and `OfflineChatRepository` interfaces.
-    - *Single Responsibility*: Specialized core services like `PermissionManager` and data helpers
-      like `LLMInferenceHelper` handle specific cross-cutting concerns.
-- **State Management**: Reactive UI powered by `StateFlow` and `collectAsStateWithLifecycle`.
-- **Decoupled Logic**: Permission handling is extracted into a dedicated `core.permission` service
-  layer.
-- **Modular UI**: Large composables are decomposed into granular, reusable units (e.g.,
-  `OfflineChatScreen`, `GeminiResponseArea`).
+---
+
+## 🧪 Robust Testing
+The project includes a comprehensive unit test suite achieving high coverage across all logic-heavy layers.
+- **Mocking**: Powered by **MockK** for deep dependency isolation.
+- **Flow Verification**: Uses **Turbine** for safe and expressive testing of asynchronous AI streams.
+- **Deterministic UI**: Custom `MainDispatcherRule` ensures predictable ViewModel testing.
 
 ---
 
 ## 🛠️ Technical Stack
 
-| Category                 | Technology                                  |
-|:-------------------------|:--------------------------------------------|
-| **UI Framework**         | Jetpack Compose (Material 3)                |
-| **AI Processing**        | MediaPipe (Vision & GenAI), Google AI SDK   |
-| **Local LLM**            | Gemma 2B (INT4 Quantized)                   |
-| **Concurrency**          | Kotlin Coroutines & Flow                    |
-| **Dependency Injection** | Hilt                                        |
-| **Navigation**           | Navigation Compose (Type-safe)              |
-| **Camera Feed**          | CameraX (ImageAnalysis)                     |
-| **Build System**         | Gradle Version Catalog (libs.versions.toml) |
+| Category                 | Technology                                    |
+|:-------------------------|:----------------------------------------------|
+| **UI Framework**         | Jetpack Compose (Material 3)                  |
+| **AI Stack**             | MediaPipe Vision/GenAI, Google AI SDK         |
+| **Local LLM**            | Gemma 2B (INT4 Quantized)                     |
+| **Architecture**         | Clean Architecture                            |
+| **Concurrency**          | Kotlin Coroutines & Flow                      |
+| **DI & Testing**         | Hilt, MockK, Turbine, JUnit 4                 |
 
 ---
 
-## ⚡ Setup for AI Engineers
+## ⚡ Setup Guide
 
 ### 1. Gemini API Integration
-
-1. Obtain your API Key from [Google AI Studio](https://aistudio.google.com/).
-2. Secure the key in your `local.properties`:
+1. Obtain an API Key from [Google AI Studio](https://aistudio.google.com/).
+2. Add it to your `local.properties`:
    ```properties
    GEMINI_API_KEY=your_secure_api_key
    ```
-   *The project uses the `Secrets Gradle Plugin` to prevent key exposure.*
 
-### 2. Edge Model Configuration
-
+### 2. Edge Model Setup
 - **Vision**: Place `efficientdet_lite0.tflite` in `app/src/main/assets/models/`.
-- **LLM**: The project expects `gemma-2b-it-gpu-int4.bin` in the app's internal files directory (
-  `context.filesDir`). This can be pushed via Android Studio's **Device File Explorer**.
-
-### 3. Permission Strategy
-
-The app utilizes a centralized `PermissionManager` injected via Hilt. To request permissions in a
-new screen:
-
-```kotlin
-PermissionHandler(
-    permission = Manifest.permission.CAMERA,
-    onResult = { isGranted -> /* Handle state */ }
-)
-```
+- **LLM**: Push `gemma-2b-it-gpu-int4.bin` to `context.filesDir` via Device File Explorer.
 
 ---
 
