@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sumit.simplemobileaisuite.R
@@ -63,6 +64,7 @@ fun ImagePickerSection(
     onSendPrompt: (prompt: String, selectedBitmap: Bitmap?) -> Unit
 ) {
     val context = LocalContext.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val coroutineScope = rememberCoroutineScope()
     var textPrompt by remember { mutableStateOf("") }
     var selectedBitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -177,6 +179,7 @@ fun ImagePickerSection(
                 IconButton(
                     onClick = {
                         if (textPrompt.isNotBlank() || selectedBitmap != null) {
+                            keyboardController?.hide()
                             onSendPrompt(textPrompt, selectedBitmap)
                             textPrompt = ""
                             selectedBitmap = null

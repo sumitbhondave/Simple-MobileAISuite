@@ -35,8 +35,11 @@ Secure, private conversation powered by **Google Gemma 2B** (INT4 Quantized).
 
 ### 4. 🤖 Smart AI Chat (Hybrid Orchestrator)
 A sophisticated hybrid engine that orchestrates between on-device and cloud models.
-- **Edge-First Logic**: Attempts to process requests locally via Gemma for zero-latency and offline availability.
-- **Cloud Fallback**: Automatically switches to Gemini 3.6 Flash if local hardware is insufficient or the model is not ready.
+
+- **Edge-First Logic**: Attempts to process requests locally via Gemma for zero-latency and offline
+  availability.
+- **Cloud Fallback**: Automatically switches to Gemini 3.6 Flash if local hardware is insufficient
+  or the model is not ready.
 - **Connectivity Aware**: Real-time network monitoring to determine optimal routing.
 
 ---
@@ -73,14 +76,14 @@ The project includes a comprehensive unit test suite achieving high coverage acr
 
 ## 🛠️ Technical Stack
 
-| Category                 | Technology                                    |
-|:-------------------------|:----------------------------------------------|
-| **UI Framework**         | Jetpack Compose (Material 3)                  |
-| **AI Stack**             | MediaPipe Vision/GenAI, Google AI SDK         |
-| **Local LLM**            | Gemma 2B (INT4 Quantized)                     |
-| **Architecture**         | Clean Architecture                            |
-| **Concurrency**          | Kotlin Coroutines & Flow                      |
-| **DI & Testing**         | Hilt, MockK, Turbine, JUnit 4                 |
+| Category         | Technology                            |
+|:-----------------|:--------------------------------------|
+| **UI Framework** | Jetpack Compose (Material 3)          |
+| **AI Stack**     | MediaPipe Vision/GenAI, Google AI SDK |
+| **Local LLM**    | Gemma 2B (INT4 Quantized)             |
+| **Architecture** | Clean Architecture                    |
+| **Concurrency**  | Kotlin Coroutines & Flow              |
+| **DI & Testing** | Hilt, MockK, Turbine, JUnit 4         |
 
 ---
 

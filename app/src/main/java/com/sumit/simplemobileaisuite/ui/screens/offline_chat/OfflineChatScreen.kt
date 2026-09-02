@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -44,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -64,6 +66,7 @@ fun OfflineChatScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var inputText by remember { mutableStateOf("") }
+    val keyboardController = LocalSoftwareKeyboardController.current
     val listState = rememberLazyListState()
 
     val lastMessageText = uiState.messages.lastOrNull()?.text ?: ""
@@ -116,6 +119,8 @@ fun OfflineChatScreen(
                         .padding(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val isModelReady = uiState.offlineLLMStatus is OfflineLLMStatus.Ready
+
                     OutlinedTextField(
                         value = inputText,
                         onValueChange = { inputText = it },
@@ -123,7 +128,7 @@ fun OfflineChatScreen(
                             .weight(1f)
                             .padding(horizontal = 8.dp),
                         placeholder = { Text(stringResource(R.string.offline_chat_placeholder)) },
-                        enabled = !uiState.isGenerating,
+                        enabled = !uiState.isGenerating && isModelReady,
                         maxLines = 5,
                         shape = RoundedCornerShape(24.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -136,10 +141,11 @@ fun OfflineChatScreen(
 
                     IconButton(
                         onClick = {
+                            keyboardController?.hide()
                             viewModel.sendMessage(inputText)
                             inputText = ""
                         },
-                        enabled = inputText.isNotBlank() && !uiState.isGenerating,
+                        enabled = inputText.isNotBlank() && !uiState.isGenerating && isModelReady,
                         colors = IconButtonDefaults.filledIconButtonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -234,6 +240,8 @@ fun ChatBubble(
     modifier: Modifier = Modifier,
     message: ChatMessage
 ) {
+    if (message.text.isEmpty()) return
+
     val backgroundColor = if (message.isFromUser) {
         MaterialTheme.colorScheme.primaryContainer
     } else {
@@ -252,13 +260,13 @@ fun ChatBubble(
         contentAlignment = alignment
     ) {
         Surface(
-            modifier = Modifier.fillMaxWidth(),
             shape = shape,
             color = backgroundColor,
-            tonalElevation = if (message.isFromUser) {
-                0.dp
+            tonalElevation = if (message.isFromUser) 0.dp else 1.dp,
+            modifier = if (message.isFromUser) {
+                Modifier.widthIn(max = 300.dp)
             } else {
-                1.dp
+                Modifier.fillMaxWidth()
             }
         ) {
             Text(

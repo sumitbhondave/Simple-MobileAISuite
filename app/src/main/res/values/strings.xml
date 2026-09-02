@@ -22,13 +22,13 @@
 
     <!-- Gemini Screen -->
     <string name="gemini_title">Gemini AI Chat</string>
-    <string name="gemini_default_response">Ask Gemini something...</string>
     <string name="gemini_placeholder">Ask about an image or text...</string>
 
     <!-- Object Detection -->
     <string name="detector_title">Local Object Detection</string>
-    <string name="camera_permission_required">Camera permission is required for object detection</string>
-    <string name="grant_permission">Grant Permission</string>
+    <string name="camera_permission_required">Camera Access Required</string>
+    <string name="camera_permission_rationale">To identify objects in real-time, we need access to your camera. All processing is done locally on your device.</string>
+    <string name="grant_permission">Allow Camera Access</string>
     <string name="detection_status">Speed: %1$dms | Objects: %2$d</string>
     <string name="object_label_format">%1$s %2$d%%</string>
     <string name="object_fallback">Object</string>
@@ -45,6 +45,7 @@
     <string name="warming_up_edge_ai">Warming up Edge AI (Gemma)...</string>
     <string name="edge_ai_unavailable">Edge AI Unavailable: Fallback to Cloud only.</string>
     <string name="initializing_edge_ai">Initializing Edge AI...</string>
+    <string name="cloud_fallback_active">Cloud AI Active (Local Unavailable)</string>
     <string name="smart_chat_placeholder">Ask something smart...</string>
 
     <!-- Image Picker Component -->
@@ -59,8 +60,8 @@
     <string name="failed_init_detector">Object detector failed to initialize: %1$s</string>
     <string name="failed_generate_content">Failed to generate content: %1$s</string>
     <string name="hardware_rejected_opencl">Hardware rejected OpenCL shader.</string>
-    <string name="local_ai_error_fallback">\n\n[System: Local AI error (%1$s). Attempting Cloud Fallback...]\n\n</string>
-    <string name="local_ai_not_init_fallback">\n\n[System: Local AI not initialized. Attempting Cloud Fallback...]\n\n</string>
-    <string name="offline_no_local_fallback">[System Error: Device is offline and local AI is unavailable. Please connect to internet.]</string>
-    <string name="system_critical_error">\n\n[System Critical Error: %1$s]</string>
+    <string name="local_ai_error_fallback">Local AI error (%1$s). Falling back to Cloud.</string>
+    <string name="local_ai_not_init_fallback">Local AI not initialized. Falling back to Cloud.</string>
+    <string name="offline_no_local_fallback">Device is offline and local AI is unavailable. Please connect.</string>
+    <string name="system_critical_error">System Critical Error: %1$s</string>
 </resources>

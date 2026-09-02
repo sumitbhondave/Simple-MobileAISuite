@@ -39,11 +39,9 @@ class SmartChatRepositoryImpl @Inject constructor(
                 return@flow
             } catch (e: Exception) {
                 emit(SmartResponse.SystemEvent.LocalAiError(e.message ?: "Unknown"))
-                emit(SmartResponse.SystemEvent.CloudFallbackStarted)
             }
         } else {
             emit(SmartResponse.SystemEvent.LocalAiNotInitialized)
-            emit(SmartResponse.SystemEvent.CloudFallbackStarted)
         }
 
         // Cloud Fallback

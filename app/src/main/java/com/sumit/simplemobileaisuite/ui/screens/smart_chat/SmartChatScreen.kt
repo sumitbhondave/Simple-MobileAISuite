@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -43,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -62,6 +64,7 @@ fun SmartChatScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var inputText by remember { mutableStateOf("") }
+    val keyboardController = LocalSoftwareKeyboardController.current
     val listState = rememberLazyListState()
 
     val lastMessageText = uiState.messages.lastOrNull()?.text ?: ""
@@ -98,18 +101,26 @@ fun SmartChatScreen(
                 )
 
                 // Edge AI Status Banner
-                val (bannerColor, statusText) = when (uiState.offlineLLMStatus) {
-                    is OfflineLLMStatus.Ready -> MaterialTheme.colorScheme.primaryContainer to stringResource(
-                        R.string.edge_ai_ready
-                    )
+                val (bannerColor, statusText) = when {
+                    uiState.headerStatusMessage != null -> {
+                        val color = if (uiState.headerStatusMessage!!.contains("Error") ||
+                            uiState.headerStatusMessage!!.contains("Unavailable")
+                        ) {
+                            MaterialTheme.colorScheme.errorContainer
+                        } else {
+                            MaterialTheme.colorScheme.secondaryContainer
+                        }
+                        color to uiState.headerStatusMessage!!
+                    }
 
-                    is OfflineLLMStatus.Loading -> MaterialTheme.colorScheme.secondaryContainer to stringResource(
-                        R.string.warming_up_edge_ai
-                    )
+                    uiState.offlineLLMStatus is OfflineLLMStatus.Ready ->
+                        MaterialTheme.colorScheme.primaryContainer to stringResource(R.string.edge_ai_ready)
 
-                    is OfflineLLMStatus.Error -> MaterialTheme.colorScheme.errorContainer to stringResource(
-                        R.string.edge_ai_unavailable
-                    )
+                    uiState.offlineLLMStatus is OfflineLLMStatus.Loading ->
+                        MaterialTheme.colorScheme.secondaryContainer to stringResource(R.string.warming_up_edge_ai)
+
+                    uiState.offlineLLMStatus is OfflineLLMStatus.Error ->
+                        MaterialTheme.colorScheme.errorContainer to stringResource(R.string.edge_ai_unavailable)
 
                     else -> MaterialTheme.colorScheme.surfaceVariant to stringResource(R.string.initializing_edge_ai)
                 }
@@ -184,6 +195,7 @@ fun SmartChatScreen(
 
                     IconButton(
                         onClick = {
+                            keyboardController?.hide()
                             viewModel.sendMessage(inputText)
                             inputText = ""
                         },
@@ -244,10 +256,12 @@ fun SmartChatBubble(
     modifier: Modifier = Modifier,
     message: ChatMessage
 ) {
+    if (message.text.isEmpty()) return
+
     val backgroundColor = if (message.isFromUser) {
         MaterialTheme.colorScheme.primaryContainer
     } else {
-        MaterialTheme.colorScheme.surfaceContainerHighest
+        MaterialTheme.colorScheme.secondaryContainer
     }
 
     val alignment = if (message.isFromUser) Alignment.CenterEnd else Alignment.CenterStart
@@ -262,10 +276,14 @@ fun SmartChatBubble(
         contentAlignment = alignment
     ) {
         Surface(
-            modifier = Modifier.fillMaxWidth(),
             shape = shape,
             color = backgroundColor,
-            tonalElevation = if (message.isFromUser) 0.dp else 1.dp
+            tonalElevation = if (message.isFromUser) 0.dp else 1.dp,
+            modifier = if (message.isFromUser) {
+                Modifier.widthIn(max = 300.dp)
+            } else {
+                Modifier.fillMaxWidth()
+            }
         ) {
             Text(
                 text = message.text,

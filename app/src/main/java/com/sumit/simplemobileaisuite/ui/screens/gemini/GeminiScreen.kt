@@ -1,5 +1,6 @@
 package com.sumit.simplemobileaisuite.ui.screens.gemini
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -11,8 +12,10 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -30,12 +33,14 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sumit.simplemobileaisuite.R
+import com.sumit.simplemobileaisuite.domain.model.ChatMessage
 import com.sumit.simplemobileaisuite.ui.components.ImagePickerSection
 
 /**
@@ -52,13 +57,13 @@ fun GeminiScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
+    val lastMessageText = uiState.messages.lastOrNull()?.text ?: ""
+
     // Smart Auto-Scroll: Lock to the bottom item safely
-    LaunchedEffect(uiState.responseText) {
-        if (uiState.responseText.isNotEmpty()) {
-            val totalItems = listState.layoutInfo.totalItemsCount
-            if (totalItems > 0) {
-                listState.scrollToItem(totalItems - 1)
-            }
+    LaunchedEffect(uiState.messages.size, lastMessageText) {
+        val totalItems = listState.layoutInfo.totalItemsCount
+        if (totalItems > 0) {
+            listState.scrollToItem(totalItems - 1)
         }
     }
 
@@ -106,26 +111,21 @@ fun GeminiScreen(
             )
         }
     ) { padding ->
-        Column(
+        // Response Display Area
+        GeminiChatArea(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp)
-        ) {
-            // Response Display Area
-            GeminiResponseArea(
-                modifier = Modifier.weight(1f),
-                responseText = uiState.responseText,
-                listState = listState
-            )
-        }
+                .padding(padding),
+            messages = uiState.messages,
+            listState = listState
+        )
     }
 }
 
 @Composable
-fun GeminiResponseArea(
+fun GeminiChatArea(
     modifier: Modifier = Modifier,
-    responseText: String,
+    messages: List<ChatMessage>,
     listState: LazyListState
 ) {
     SelectionContainer(modifier = modifier) {
@@ -134,23 +134,63 @@ fun GeminiResponseArea(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp)
         ) {
-            item {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                ) {
-                    Text(
-                        text = responseText,
-                        modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
+            items(
+                items = messages,
+                key = { it.id }
+            ) { message ->
+                GeminiChatBubble(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    message = message
+                )
+                Spacer(modifier = Modifier.height(12.dp))
             }
             // Dedicated scroll target
-            item {
+            item(key = "bottom_anchor") {
                 Spacer(modifier = Modifier.height(1.dp))
             }
+        }
+    }
+}
+
+@Composable
+fun GeminiChatBubble(
+    modifier: Modifier = Modifier,
+    message: ChatMessage
+) {
+    if (message.text.isEmpty()) return
+
+    val backgroundColor = if (message.isFromUser) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.secondaryContainer
+    }
+
+    val alignment = if (message.isFromUser) Alignment.CenterEnd else Alignment.CenterStart
+    val shape = if (message.isFromUser) {
+        RoundedCornerShape(20.dp, 20.dp, 4.dp, 20.dp)
+    } else {
+        RoundedCornerShape(20.dp, 20.dp, 20.dp, 4.dp)
+    }
+
+    Box(
+        modifier = modifier.fillMaxWidth(),
+        contentAlignment = alignment
+    ) {
+        Surface(
+            shape = shape,
+            color = backgroundColor,
+            tonalElevation = if (message.isFromUser) 0.dp else 1.dp,
+            modifier = if (message.isFromUser) {
+                Modifier.widthIn(max = 300.dp)
+            } else {
+                Modifier.fillMaxWidth()
+            }
+        ) {
+            Text(
+                text = message.text,
+                modifier = Modifier.padding(16.dp),
+                style = MaterialTheme.typography.bodyLarge
+            )
         }
     }
 }

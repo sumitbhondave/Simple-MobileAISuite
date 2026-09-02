@@ -3,7 +3,6 @@ package com.sumit.simplemobileaisuite.ui.screens.gemini
 import android.content.Context
 import android.graphics.Bitmap
 import app.cash.turbine.test
-import com.sumit.simplemobileaisuite.R
 import com.sumit.simplemobileaisuite.domain.usecase.GetGeminiResponseUseCase
 import com.sumit.simplemobileaisuite.ui.screens.MainDispatcherRule
 import io.mockk.every
@@ -29,7 +28,6 @@ class GeminiViewModelTest {
     fun setup() {
         getGeminiResponseUseCase = mockk()
         context = mockk(relaxed = true)
-        every { context.getString(R.string.gemini_default_response) } returns "Default"
         viewModel = GeminiViewModel(getGeminiResponseUseCase, context)
     }
 
@@ -47,7 +45,9 @@ class GeminiViewModelTest {
 
         viewModel.uiState.test {
             val finalItem = expectMostRecentItem()
-            assertEquals("Hi there", finalItem.responseText)
+            assertEquals(2, finalItem.messages.size)
+            assertEquals("Hello", finalItem.messages[0].text)
+            assertEquals("Hi there", finalItem.messages[1].text)
             assertFalse(finalItem.isLoading)
         }
     }
@@ -68,7 +68,9 @@ class GeminiViewModelTest {
 
         viewModel.uiState.test {
             val finalItem = expectMostRecentItem()
-            assertEquals("An image", finalItem.responseText)
+            assertEquals(2, finalItem.messages.size)
+            assertEquals("What's this?", finalItem.messages[0].text)
+            assertEquals("An image", finalItem.messages[1].text)
             assertFalse(finalItem.isLoading)
         }
     }
