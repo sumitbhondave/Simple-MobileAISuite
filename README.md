@@ -12,6 +12,20 @@ latency, privacy-first on-device processing, and modern architectural excellence
 
 ---
 
+## 📱 Feature Previews
+
+| Gemini AI Chat | Object Detection |
+| :---: | :---: |
+| ![Gemini AI Chat](screenshots/Gemini_AI_Chat.gif) | ![Object Detection](screenshots/Object_Detection.gif) |
+| *Experience sophisticated multi-modal reasoning with ultra-fast cloud-based inference.* | *Witness lightning-fast edge vision predicting objects with 100% privacy.* |
+
+| Offline AI Chat (Gemma) | Smart AI Chat |
+| :---: | :---: |
+| ![Offline AI Chat](screenshots/Offline_AI_Chat(Gemma).gif) | ![Smart AI Chat](screenshots/Smart_AI_Chat.gif) |
+| *Engage in secure, totally offline conversations powered by a quantized Gemma LLM.* | *Sophisticated hybrid logic that intelligently bridges the gap between Edge and Cloud.* |
+
+---
+
 ## 🚀 Key AI Features
 
 ### 1. 🌌 Gemini AI Chat (Generative AI)
