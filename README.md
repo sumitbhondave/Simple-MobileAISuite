@@ -64,11 +64,11 @@ This project follows an advanced **Clean Architecture** implementation with stri
 
 ```mermaid
 graph TD
-    UI[UI Layer: Compose & ViewModels] --> UseCase[Domain Layer: Pure Use Cases]
-    UseCase --> DomainRepo[Domain Layer: Repository Interfaces]
-    DomainRepo --> DataRepo[Data Layer: Repository Implementations]
-    DataRepo --> DataSource[Data Layer: Local & Remote Data Sources]
-    DI[Hilt] -.-> UI
+    UI["UI Layer: Compose & ViewModels"] --> UseCase["Domain Layer: Pure Use Cases"]
+    UseCase --> DomainRepo["Domain Layer: Repository Interfaces"]
+    DomainRepo --> DataRepo["Data Layer: Repository Implementations"]
+    DataRepo --> DataSource["Data Layer: Local & Remote Data Sources"]
+    DI["Hilt"] -.-> UI
     DI -.-> DataRepo
 ```
 
